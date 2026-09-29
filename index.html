@@ -196,8 +196,9 @@
   /* 桌面版（Windows 绿色包，462MB）的下载地址：把你的网盘分享链接填在下面引号里即可；
      留空时点按钮会提示"找分享者要一份"。 */
   window.NAI_DESKTOP_URL = '';
-  /* 素材（动画/字体）走 jsDelivr CDN（国内比 github.io 快很多）；想改回本目录就设成 './assets/' */
-  window.NAI_ASSET_BASE = 'https://cdn.jsdelivr.net/gh/felix666-zhou/nair-pet@main/assets/';
+  /* 动画素材从站点自身目录加载（同源最稳）。想走 CDN 就把它改成：
+     'https://cdn.jsdelivr.net/gh/felix666-zhou/nair-pet@main/assets/' */
+  window.NAI_ASSET_BASE = './assets/';
 </script>
 <script src="./shared-core.js"></script>
 <script src="./config.js"></script>

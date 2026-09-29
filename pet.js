@@ -17,6 +17,9 @@
     return;
   }
 
+  // 素材基地址：默认走 jsDelivr（国内快），可在 index.html 里改成 './assets/'
+  const ASSET_BASE = window.NAI_ASSET_BASE || './assets/';
+
   // ---------------------------------------------------------------- 设置与记忆
 
   const SETTINGS_KEY = 'nai-web-settings-v1';
@@ -274,7 +277,7 @@
     const front = videos.find((v) => v !== back);
     back.loop = !!opts.loop;
     back.muted = true;
-    back.src = './assets/webm/' + encodeURIComponent(name) + '.webm';
+    back.src = ASSET_BASE + 'webm/' + encodeURIComponent(name) + '.webm';
     const p = back.play();
     if (p && p.catch) p.catch(() => {});
     back.classList.add('is-front');

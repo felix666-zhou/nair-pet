@@ -67,6 +67,12 @@
   #nai-bubble::after{
     content:'';position:absolute;left:50%;top:100%;margin-left:-8px;border:8px solid transparent;border-top-color:rgba(255,255,255,.97);
   }
+  @font-face{
+    font-family:'ShangshouSoftCandy';
+    src:url('https://cdn.jsdelivr.net/gh/felix666-zhou/nair-pet@main/assets/fonts/%E4%B8%8A%E9%A6%96%E8%BD%AF%E7%B3%96%E4%BD%93.ttf') format('truetype');
+    font-display:swap;
+    font-weight:400;
+  }
 
   /* ---------------- 齿轮 / 设置面板 ---------------- */
   #nai-gear{
@@ -190,6 +196,8 @@
   /* 桌面版（Windows 绿色包，462MB）的下载地址：把你的网盘分享链接填在下面引号里即可；
      留空时点按钮会提示"找分享者要一份"。 */
   window.NAI_DESKTOP_URL = '';
+  /* 素材（动画/字体）走 jsDelivr CDN（国内比 github.io 快很多）；想改回本目录就设成 './assets/' */
+  window.NAI_ASSET_BASE = 'https://cdn.jsdelivr.net/gh/felix666-zhou/nair-pet@main/assets/';
 </script>
 <script src="./shared-core.js"></script>
 <script src="./config.js"></script>

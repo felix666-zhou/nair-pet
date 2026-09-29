@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>奈儿 · 网页桌宠</title>
+<style>
+  :root{
+    --pet-size: 462px;
+    --ink:#e9ecf4; --muted:#98a0b3; --card:#151a24; --line:#252c3a; --accent:#5b8cff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:radial-gradient(1200px 800px at 70% -10%, #1b2436 0%, #0d1017 55%, #0a0d13 100%);
+    color:var(--ink);font:15px/1.75 'Microsoft YaHei','PingFang SC',system-ui,sans-serif;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:56px 24px 120px}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:.5px}
+  h1 small{font-size:14px;color:var(--muted);font-weight:400;margin-left:10px}
+  .lede{color:var(--muted);margin:0 0 26px}
+  .card{background:linear-gradient(180deg,#161b26,#131822);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:16px;box-shadow:0 18px 40px rgba(0,0,0,.28)}
+  .card h2{margin:0 0 10px;font-size:17px}
+  .card ul{margin:0;padding-left:20px;color:#c7cdda}
+  .card li{margin:4px 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{
+    font:inherit;cursor:pointer;border:1px solid #2b3346;background:#1d2331;color:var(--ink);
+    border-radius:10px;padding:9px 16px;transition:.15s;
+  }
+  button:hover{background:#232b3c;border-color:#39425a}
+  button.primary{background:linear-gradient(180deg,#3f6df0,#3457c9);border-color:#4a75f5;font-weight:600}
+  button.primary:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent}
+  code{background:#0f1420;border:1px solid #232b3b;border-radius:6px;padding:1px 6px;font-size:13px;color:#b9c4da}
+  .kbd{display:inline-block;background:#0f1420;border:1px solid #2a3350;border-radius:6px;padding:0 6px}
+  .status{font-size:13px;color:var(--muted)}
+  .ok{color:#7ee2a8}
+  .warn{color:#ffc86b}
+  .err{color:#ff8f7a}
+
+  /* ---------------- 桌宠本体 ---------------- */
+  #nai-pet{
+    position:fixed;left:0;top:0;width:var(--pet-size);height:calc(var(--pet-size) * 9 / 16);
+    pointer-events:none;z-index:2147483000;will-change:transform;
+  }
+  #nai-stage{position:absolute;inset:0;transform-origin:50% 100%}
+  .nai-video{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .16s linear;background:transparent}
+  .nai-video.is-front{opacity:1}
+  /* 只有"身体"这片区域接收鼠标，透明区域完全穿透，不挡页面 */
+  #nai-hit{position:absolute;pointer-events:auto;cursor:grab;}
+  #nai-hit.dragging{cursor:grabbing}
+  #nai-bubble{
+    position:absolute;left:50%;bottom:100%;transform:translate(-50%,-10px);
+    max-width:min(360px,86vw);padding:12px 16px;border-radius:16px;background:rgba(255,255,255,.97);
+    color:#2b2b2b;font-family:'ShangshouSoftCandy','Yuanti SC','YouYuan','幼圆','Microsoft YaHei',sans-serif;
+    font-size:15px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.22);
+    opacity:0;pointer-events:none;transition:opacity .15s ease;white-space:pre-wrap;word-break:break-word;
+  }
+  #nai-bubble.is-on{opacity:1}
+  #nai-bubble.rows{white-space:normal}
+  #nai-bubble .row-sub{color:#8a8a8a;font-size:13px;margin-top:2px}
+  #nai-bubble .row-err{color:#d94f3d}
+  #nai-bubble .row-tier-peak{color:#d94f3d;font-weight:600}
+  #nai-bubble .row-tier-idle{color:#2fa46a;font-weight:600}
+  #nai-bubble::after{
+    content:'';position:absolute;left:50%;top:100%;margin-left:-8px;border:8px solid transparent;border-top-color:rgba(255,255,255,.97);
+  }
+
+  /* ---------------- 齿轮 / 设置面板 ---------------- */
+  #nai-gear{
+    position:fixed;left:18px;bottom:18px;width:44px;height:44px;border-radius:50%;z-index:2147483001;
+    background:rgba(24,30,42,.86);border:1px solid #333c52;color:#cfd6e6;font-size:19px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);
+  }
+  #nai-gear:hover{background:rgba(32,40,56,.95)}
+  #nai-panel{
+    position:fixed;left:18px;bottom:74px;width:380px;max-width:calc(100vw - 36px);
+    background:#151a24;border:1px solid #2a3242;border-radius:16px;padding:18px;z-index:2147483001;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);display:none;
+  }
+  #nai-panel.is-open{display:block}
+  #nai-panel h3{margin:0 0 4px;font-size:16px}
+  #nai-panel p.tip{margin:0 0 14px;color:var(--muted);font-size:12.5px;line-height:1.6}
+  .field{margin-bottom:11px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+  .field input[type=text],.field input[type=password],.field select,.field textarea{
+    width:100%;background:#0f1420;border:1px solid #29313f;border-radius:9px;color:var(--ink);
+    padding:8px 10px;font:13px/1.5 'Consolas','Microsoft YaHei',monospace;outline:none;
+  }
+  .field textarea{min-height:84px;font-family:'Microsoft YaHei',sans-serif}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:#4a75f5}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:#c7cdda;margin:8px 0}
+  .panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .panel-note{margin-top:10px;font-size:12.5px;color:var(--muted);min-height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>奈儿 <small>网页桌宠 · 复制即用</small></h1>
+  <p class="lede">一只住在网页里的 Q 版小女仆：自己走动、随机卖萌，也能陪你聊天。她只在你打开这个页面时出现，不需要安装任何东西。</p>
+
+  <div class="card">
+    <h2>怎么用她</h2>
+    <ul>
+      <li><b>点她一下</b>：她会回应你（开心/害羞/傲娇…）</li>
+      <li><b>按住拖动</b>：把她挪到任意位置；<b>甩出去</b>她会飞一段再落回地面</li>
+      <li><b>右键点她</b>：弹出菜单，可以点播 100+ 个动画，也可以「对话」「碎碎念」「查看余额」</li>
+      <li><b>左下角齿轮</b>：填你自己的 API Key、选模型、调大小、开关朗读</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>第一次使用：填 API Key</h2>
+    <ul>
+      <li>默认走 <code>DeepSeek 官方</code>：到 <code>platform.deepseek.com</code> 创建 API Key，粘进设置面板即可</li>
+      <li>也可以用任何 <b>OpenAI 兼容</b>的接口：把「接口地址」和「模型」换成对方的即可（例如公司中转）</li>
+      <li>Key 只存在<b>你自己的浏览器本地</b>（localStorage），不会上传到任何第三方服务器；她说话是直接调你填的那个接口</li>
+    </ul>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="open-settings">填 API Key</button>
+      <button id="say-hi">让她说句话</button>
+      <button class="ghost" id="toggle-walk">让她停下 / 继续走动</button>
+      <button id="download-desktop">下载桌面版（Windows）</button>
+      <span class="status" id="status"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>说明</h2>
+    <ul>
+      <li>聊天时会带上最近几轮记忆（存在浏览器本地），语气是「调皮可爱」那一套</li>
+      <li>动画素材来自 DSH 桌宠项目 <a href="https://github.com/PC2005-cloud/dsh-pet" target="_blank" rel="noreferrer" style="color:#8fb0ff">dsh-pet</a>（MIT + 素材开源、禁止商用）</li>
+      <li>把整个文件夹拷给别人 / 放到任意静态服务器上都能直接用；纯前端，没有服务端</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 桌宠 -->
+<div id="nai-pet">
+  <div id="nai-stage">
+    <video class="nai-video" muted playsinline preload="auto"></video>
+    <video class="nai-video" muted playsinline preload="auto"></video>
+    <div id="nai-hit"></div>
+  </div>
+  <div id="nai-bubble"></div>
+</div>
+
+<!-- 设置 -->
+<div id="nai-gear" title="设置（填 API Key）">⚙</div>
+<div id="nai-panel">
+  <h3>奈儿设置</h3>
+  <p class="tip">Key 只保存在本机浏览器里。填完点「保存」，再右键她 →「对话」就能聊了。</p>
+  <div class="field">
+    <label>接口地址（OpenAI 兼容）</label>
+    <input type="text" id="f-base" placeholder="https://api.deepseek.com">
+  </div>
+  <div class="grid2">
+    <div class="field">
+      <label>模型</label>
+      <input type="text" id="f-model" placeholder="deepseek-chat">
+    </div>
+    <div class="field">
+      <label>她的大小</label>
+      <select id="f-size"></select>
+    </div>
+  </div>
+  <div class="field">
+    <label>API Key</label>
+    <input type="password" id="f-key" placeholder="sk-...">
+  </div>
+  <div class="field">
+    <label>她的人设（可改）</label>
+    <textarea id="f-prompt"></textarea>
+  </div>
+  <label class="check"><input type="checkbox" id="f-speak"> 让她说话时朗读出来（用浏览器语音）</label>
+  <label class="check"><input type="checkbox" id="f-bubble"> 显示气泡文字</label>
+  <div class="panel-actions">
+    <button class="primary" id="save-settings">保存</button>
+    <button id="test-settings">测试连接</button>
+    <button id="clear-memory">清空对话记忆</button>
+    <button class="ghost" id="close-settings">关闭</button>
+  </div>
+  <div class="panel-note" id="panel-note"></div>
+</div>
+
+<script>
+  /* 桌面版（Windows 绿色包，462MB）的下载地址：把你的网盘分享链接填在下面引号里即可；
+     留空时点按钮会提示"找分享者要一份"。 */
+  window.NAI_DESKTOP_URL = '';
+</script>
+<script src="./shared-core.js"></script>
+<script src="./config.js"></script>
+<script src="./pet.js"></script>
+</body>
+</html>
